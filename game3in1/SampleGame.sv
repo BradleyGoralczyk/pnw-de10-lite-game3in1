@@ -30,7 +30,6 @@ ClockDividerN CLOCK_DIV
 	.clock_out (clock)
 );
 
-
 // Random Number Generator
 logic [31:0] rng_value;
 LinearCongruentialRNG LCRNG

@@ -40,7 +40,7 @@ DummyGame DUMMY
 
 // --------------------------------------------------------------------------------
 
-logic game0_enable, game0_rng_trigger;
+logic game0_enable;
 logic [5:0] [7:0] game0_hex_leds;
 logic [9:0] game0_sw_leds;
 SampleGame GAME0
