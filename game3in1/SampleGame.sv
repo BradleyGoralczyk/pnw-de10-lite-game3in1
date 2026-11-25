@@ -1,8 +1,10 @@
 /*
- * Game0 - Sample Game
+ * Sample Game
  * Random number generator scramble showcase!
  * Press key0 to pause.  Press key1 to reset.
  */
+
+`default_nettype none
 
 module SampleGame
 (
@@ -67,3 +69,5 @@ endgenerate
 // --------------------------------------------------------------------------------
 
 endmodule: SampleGame
+
+`default_nettype wire

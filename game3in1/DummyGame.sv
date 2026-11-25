@@ -1,7 +1,9 @@
 /*
- * Dummy - Dummy Game
+ * Dummy Game
  * This game does nothing and displays nothing.
  */
+
+`default_nettype none
 
 module DummyGame
 (
@@ -29,3 +31,5 @@ end
 // --------------------------------------------------------------------------------
 
 endmodule: DummyGame
+
+`default_nettype wire

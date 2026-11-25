@@ -4,6 +4,8 @@
  * Bradley Goralczyk, Julian Lashbrook, Andrew Ciastko
  */
 
+`default_nettype none
+
 module game3in1
 (
 	input logic
@@ -32,31 +34,68 @@ assign key1 = ~key1_low;
 
 logic [5:0] [7:0] dummy_hex_leds;
 logic [9:0] dummy_sw_leds;
-DummyGame DUMMY
+DummyGame DUMMYGAME
 (
 	.hex_leds (dummy_hex_leds),
 	.sw_leds (dummy_sw_leds)
 );
 
-// --------------------------------------------------------------------------------
-
-logic game0_enable;
-logic [5:0] [7:0] game0_hex_leds;
-logic [9:0] game0_sw_leds;
-SampleGame GAME0
+logic sample_enable;
+logic [5:0] [7:0] sample_hex_leds;
+logic [9:0] sample_sw_leds;
+SampleGame SAMPLEGAME
 (
-	.key0 (game0_enable ? key0 : 0),
-	.key1 (game0_enable ? key1 : 0),
-	.clock_50MHz (game0_enable ? clock_50MHz : 0),
-	.hex_leds (game0_hex_leds),
-	.sw_leds (game0_sw_leds)
+	.key0 (sample_enable ? key0 : 0),
+	.key1 (sample_enable ? key1 : 0),
+	.clock_50MHz (sample_enable ? clock_50MHz : 0),
+	.hex_leds (sample_hex_leds),
+	.sw_leds (sample_sw_leds)
+);
+
+logic bgoralc_enable;
+logic [5:0] [7:0] bgoralc_hex_leds;
+logic [9:0] bgoralc_sw_leds;
+BGoralcGame BGORALCGAME
+(
+	.key0 (bgoralc_enable ? key0 : 0),
+	.key1 (bgoralc_enable ? key1 : 0),
+	.clock_50MHz (bgoralc_enable ? clock_50MHz : 0),
+	.hex_leds (bgoralc_hex_leds),
+	.sw_leds (bgoralc_sw_leds)
+);
+
+logic jlashbr_enable;
+logic [5:0] [7:0] jlashbr_hex_leds;
+logic [9:0] jlashbr_sw_leds;
+JLashbrGame JLASHBRGAME
+(
+	.key0 (jlashbr_enable ? key0 : 0),
+	.key1 (jlashbr_enable ? key1 : 0),
+	.clock_50MHz (jlashbr_enable ? clock_50MHz : 0),
+	.hex_leds (jlashbr_hex_leds),
+	.sw_leds (jlashbr_sw_leds)
+);
+
+logic aciastk_enable;
+logic [5:0] [7:0] aciastk_hex_leds;
+logic [9:0] aciastk_sw_leds;
+ACiastkGame ACIASTKGAME
+(
+	.key0 (aciastk_enable ? key0 : 0),
+	.key1 (aciastk_enable ? key1 : 0),
+	.clock_50MHz (aciastk_enable ? clock_50MHz : 0),
+	.hex_leds (aciastk_hex_leds),
+	.sw_leds (aciastk_sw_leds)
 );
 
 // --------------------------------------------------------------------------------
 
 // Game enabler
 always_comb begin
-	game0_enable = (sw == 0);
+	sample_enable = (sw == 0);
+	bgoralc_enable = (sw == 1);
+	jlashbr_enable = (sw == 2);
+	aciastk_enable = (sw == 3);
 end
 
 // Display selector
@@ -68,8 +107,20 @@ always_comb begin
 			sw_leds <= dummy_sw_leds;
 		end
 		0: begin
-			hex_leds <= ~game0_hex_leds;
-			sw_leds <= game0_sw_leds;
+			hex_leds <= ~sample_hex_leds;
+			sw_leds <= sample_sw_leds;
+		end
+		1: begin
+			hex_leds <= ~bgoralc_hex_leds;
+			sw_leds <= bgoralc_sw_leds;
+		end
+		2: begin
+			hex_leds <= ~jlashbr_hex_leds;
+			sw_leds <= jlashbr_sw_leds;
+		end
+		3: begin
+			hex_leds <= ~aciastk_hex_leds;
+			sw_leds <= aciastk_sw_leds;
 		end
 	endcase
 end
@@ -77,3 +128,5 @@ end
 // --------------------------------------------------------------------------------
 
 endmodule: game3in1
+
+`default_nettype wire
