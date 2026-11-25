@@ -132,9 +132,9 @@ set_location_assignment PIN_D12 -to sw[2]
 set_location_assignment PIN_C11 -to sw[1]
 set_location_assignment PIN_C10 -to sw[0]
 set_location_assignment PIN_P11 -to clock_50MHz
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name SYSTEMVERILOG_FILE ../AlphabetDisplayDriver/AlphabetDisplayDriver.sv
 set_global_assignment -name SYSTEMVERILOG_FILE JLashbrGame.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../BGoralcGameObstacleGen/BGoralcGameObstacleGen.sv
 set_global_assignment -name SYSTEMVERILOG_FILE BGoralcGame.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ACiastkGame.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../HexNibbleDisplayDriver/HexNibbleDisplayDriver.sv
@@ -143,3 +143,4 @@ set_global_assignment -name SYSTEMVERILOG_FILE ../ClockDividerN/ClockDividerN.sv
 set_global_assignment -name SYSTEMVERILOG_FILE game3in1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE SampleGame.sv
 set_global_assignment -name SYSTEMVERILOG_FILE DummyGame.sv
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
