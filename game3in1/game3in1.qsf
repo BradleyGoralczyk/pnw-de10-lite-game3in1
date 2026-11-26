@@ -135,7 +135,6 @@ set_location_assignment PIN_P11 -to clock_50MHz
 set_global_assignment -name SYSTEMVERILOG_FILE ../LevelToPulse/LevelToPulse.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../AlphabetDisplayDriver/AlphabetDisplayDriver.sv
 set_global_assignment -name SYSTEMVERILOG_FILE JLashbrGame.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../BGoralcGameObstacleGen/BGoralcGameObstacleGen.sv
 set_global_assignment -name SYSTEMVERILOG_FILE BGoralcGame.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ACiastkGame.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../HexNibbleDisplayDriver/HexNibbleDisplayDriver.sv

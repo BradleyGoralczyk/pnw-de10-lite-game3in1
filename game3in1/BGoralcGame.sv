@@ -6,7 +6,7 @@
 `default_nettype none
 
 module BGoralcGame
-import BGoralcGameObstacleGen_pkg::*, AlphabetDisplayDriver_pkg::*;
+import AlphabetDisplayDriver_pkg::*;
 (
 	input logic
 	key0,  // upper button (jump)
@@ -39,6 +39,13 @@ typedef enum logic [1:0]
 	GAME_LOSE
 } GameState;
 
+typedef enum logic [1:0]
+{
+	OBSTACLE_NONE = 2'b00,
+	OBSTACLE_BIRD = 2'b01,
+	OBSTACLE_BUSH = 2'b10
+} ObstacleState;
+
 parameter int DIVISOR_BIRDBUSH_MIN = 50 * 1000 * 1000 / 1;
 parameter int DIVISOR_BIRDBUSH_MAX = 50 * 1000 * 1000 / 8;
 
@@ -46,13 +53,13 @@ parameter int DIVISOR_BIRDBUSH_MAX = 50 * 1000 * 1000 / 8;
 // Submodule Instantiation
 // --------------------------------------------------------------------------------
 
-logic clock_birdbush, clock_birdbush_divisor;
-ClockDividerN CLOCK_BIRDBUSH
+logic clock_obstacles, clock_obstacles_divisor;
+ClockDividerN CLOCK_OBSTACLES
 (
 	.clock_in (clock_50MHz),
 	.reset (game_state != GAME_PLAY),
 	.divisor (DIVISOR_BIRDBUSH_MAX),
-	.clock_out (clock_birdbush)
+	.clock_out (clock_obstacles)
 );
 
 logic clock_flashing;
@@ -64,13 +71,12 @@ ClockDividerN CLOCK_FLASHING
 	.clock_out (clock_flashing)
 );
 
-logic obstacle_gen_reset;
-ObstacleState obstacles [15:0];
-BGoralcGameObstacleGen GEN_BIRDBUSH
+logic [31:0] rng_value_obstacles;
+LinearCongruentialRNG RNG_OBSTACLES
 (
-	.clock (clock_birdbush),
-	.reset (obstacle_gen_reset),
-	.obstacles(obstacles)
+	.clock (clock_obstacles),
+	.reset (reset),
+	.value (rng_value_obstacles)
 );
 
 logic key0_pulse, key1_pulse, anykey_pulse;
@@ -132,6 +138,32 @@ AlphabetDisplayDriver CHAR_EXCLAMATION
 );
 
 // --------------------------------------------------------------------------------
+// Obstacle Generator
+// --------------------------------------------------------------------------------
+
+logic reset_obstacles;
+ObstacleState obstacles [15:0];
+always_ff @(posedge clock_obstacles or posedge reset_obstacles) begin
+	if (reset_obstacles) begin
+		for (int i = 0; i < 16; ++i) begin
+			obstacles[i] <= OBSTACLE_NONE;
+		end
+	end else begin
+		for (int i = 1; i < 16; ++i) begin
+			obstacles[i] <= obstacles[i - 1];
+		end
+		// TODO: Don't generate impossible patterns
+		if (rng_value_obstacles > 32'h20000000) begin
+			obstacles[0] <= OBSTACLE_NONE;
+		end else if (rng_value_obstacles > 32'h10000000) begin
+			obstacles[0] <= OBSTACLE_BIRD;
+		end else begin
+			obstacles[0] <= OBSTACLE_BUSH;
+		end
+	end
+end
+
+// --------------------------------------------------------------------------------
 // Game Main Loop
 // --------------------------------------------------------------------------------
 
@@ -141,17 +173,17 @@ always_ff @(posedge clock_50MHz or posedge reset) begin
 	if (reset) begin
 		dino_state <= DINO_WALK;
 		game_state <= GAME_TITLE;
-		obstacle_gen_reset <= 1'b1;
+		reset_obstacles <= 1'b1;
 	end else	case (game_state)
 		GAME_TITLE: begin
 			dino_state <= DINO_WALK;
 			game_state <= anykey_pulse ? GAME_PLAY : game_state;
-			obstacle_gen_reset <= 1'b1;
+			reset_obstacles <= 1'b1;
 		end
 		GAME_LOSE: begin
 			dino_state <= dino_state;
 			game_state <= anykey_pulse ? GAME_TITLE : game_state;
-			obstacle_gen_reset <= 1'b0;
+			reset_obstacles <= 1'b0;
 		end
 		GAME_PLAY: begin
 			if (key0 && !key1) begin
@@ -172,7 +204,7 @@ always_ff @(posedge clock_50MHz or posedge reset) begin
 					game_state <= game_state;
 				end
 			endcase
-			obstacle_gen_reset <= 1'b0;
+			reset_obstacles <= 1'b0;
 		end
 	endcase
 end
