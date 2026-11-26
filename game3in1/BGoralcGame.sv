@@ -65,7 +65,7 @@ ClockDividerN CLOCK_FLASHING
 );
 
 logic obstacle_gen_reset;
-BGoralcGameObstacleState obstacles [15:0];
+ObstacleState obstacles [15:0];
 BGoralcGameObstacleGen GEN_BIRDBUSH
 (
 	.clock (clock_birdbush),
@@ -181,7 +181,15 @@ end
 // Display Driver
 // --------------------------------------------------------------------------------
 
+ObstacleState obstacles_hex [5:0];
+assign obstacles_hex = obstacles[15:10];
+
+ObstacleState obstacles_sw [9:0];
+assign obstacles_sw = obstacles[9:0];
+
 logic show_obstacles;
+assign show_obstacles = (game_state == GAME_PLAY || clock_flashing);
+	
 always_comb begin
 	// Overcommit to avoid inferred latches and output ports with no driver.
 	for (int hex_idx = 0; hex_idx < 6; ++hex_idx) begin
@@ -190,10 +198,9 @@ always_comb begin
 	
 	hex_leds[5][4] = (dino_state == DINO_WALK | dino_state == DINO_DUCK);
 	hex_leds[5][5] = (dino_state == DINO_WALK | dino_state == DINO_JUMP);
-	show_obstacles = (game_state == GAME_PLAY || clock_flashing);
 	for (int hex_idx = 0; hex_idx < 6; ++hex_idx) begin
-		hex_leds[hex_idx][0] = (obstacles[hex_idx + 10] == OBSTACLE_BIRD) && show_obstacles;
-		hex_leds[hex_idx][3] = (obstacles[hex_idx + 10] == OBSTACLE_BUSH) && show_obstacles;
+		hex_leds[hex_idx][0] = (obstacles_hex[hex_idx] == OBSTACLE_BIRD) && show_obstacles;
+		hex_leds[hex_idx][3] = (obstacles_hex[hex_idx] == OBSTACLE_BUSH) && show_obstacles;
 	end
 	case (game_state)
 		GAME_TITLE: begin
@@ -201,6 +208,9 @@ always_comb begin
 			hex_leds[2] = hex_leds_char_u;
 			hex_leds[1] = hex_leds_char_n;
 			hex_leds[0] = hex_leds_char_exclamation;
+		end
+		GAME_PLAY: begin
+			// Do nothing
 		end
 		GAME_LOSE: begin
 			hex_leds[3] = hex_leds_char_L;
@@ -211,7 +221,7 @@ always_comb begin
 	endcase
 	
 	for (int sw_idx = 0; sw_idx < 10; ++sw_idx) begin
-		sw_leds[sw_idx] = (obstacles[sw_idx] != OBSTACLE_NONE);
+		sw_leds[sw_idx] = (obstacles_sw[sw_idx] != OBSTACLE_NONE);
 	end
 end
 

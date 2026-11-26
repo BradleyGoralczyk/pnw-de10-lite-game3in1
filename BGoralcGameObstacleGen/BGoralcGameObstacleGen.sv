@@ -6,7 +6,7 @@ typedef enum logic [1:0]
 	OBSTACLE_NONE = 2'b00,
 	OBSTACLE_BIRD = 2'b01,
 	OBSTACLE_BUSH = 2'b10
-} BGoralcGameObstacleState;
+} ObstacleState;
 
 endpackage: BGoralcGameObstacleGen_pkg
 
@@ -18,7 +18,7 @@ import BGoralcGameObstacleGen_pkg::*;
 	clock,
 	reset,
 	
-	output BGoralcGameObstacleState
+	output ObstacleState
 	obstacles [buffer_size - 1:0]
 );
 
