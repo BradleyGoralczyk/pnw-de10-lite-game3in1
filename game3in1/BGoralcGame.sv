@@ -141,8 +141,35 @@ AlphabetDisplayDriver CHAR_EXCLAMATION
 // Obstacle Generator
 // --------------------------------------------------------------------------------
 
-logic reset_obstacles;
 ObstacleState obstacles [15:0];
+ObstacleState next_obstacle;
+always_comb begin
+	case (obstacles[0])
+		default: begin  // OBSTACLE_NONE, but technically the enum has a fourth (invalid) state so SystemVerilog was throwing a fit.
+			if (obstacles[1] != OBSTACLE_NONE) begin
+				// One-wide gaps are really hard to navigate.
+				next_obstacle = OBSTACLE_NONE;
+			end else if (rng_value_obstacles > 32'h20000000) begin
+				next_obstacle = OBSTACLE_NONE;
+			end else if (rng_value_obstacles > 32'h10000000) begin
+				next_obstacle = OBSTACLE_BIRD;
+			end else begin
+				next_obstacle = OBSTACLE_BUSH;
+			end
+		end
+		OBSTACLE_BIRD,
+		OBSTACLE_BUSH: begin
+			if (rng_value_obstacles > 32'h40000000) begin
+				// Guaranteed to produce a gap before switching between bird and bush.
+				next_obstacle = OBSTACLE_NONE;
+			end else begin
+				next_obstacle = obstacles[0];
+			end
+		end
+	endcase
+end
+
+logic reset_obstacles;
 always_ff @(posedge clock_obstacles or posedge reset_obstacles) begin
 	if (reset_obstacles) begin
 		for (int i = 0; i < 16; ++i) begin
@@ -152,14 +179,7 @@ always_ff @(posedge clock_obstacles or posedge reset_obstacles) begin
 		for (int i = 1; i < 16; ++i) begin
 			obstacles[i] <= obstacles[i - 1];
 		end
-		// TODO: Don't generate impossible patterns
-		if (rng_value_obstacles > 32'h20000000) begin
-			obstacles[0] <= OBSTACLE_NONE;
-		end else if (rng_value_obstacles > 32'h10000000) begin
-			obstacles[0] <= OBSTACLE_BIRD;
-		end else begin
-			obstacles[0] <= OBSTACLE_BUSH;
-		end
+		obstacles[0] <= next_obstacle;
 	end
 end
 
