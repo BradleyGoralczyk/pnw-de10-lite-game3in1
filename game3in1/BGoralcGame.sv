@@ -46,19 +46,25 @@ typedef enum logic [1:0]
 	OBSTACLE_BUSH = 2'b10
 } ObstacleState;
 
-parameter int DIVISOR_BIRDBUSH_MIN = 50 * 1000 * 1000 / 1;
-parameter int DIVISOR_BIRDBUSH_MAX = 50 * 1000 * 1000 / 8;
+parameter int CLOCK_OBSTACLES_DIVISOR_START = 50_000_000 / 8;
+parameter int CLOCK_OBSTACLES_DIVISOR_END = 50_000_000 / 16;
+// It should take 60.03125 seconds to double the speed.
+// Proof: sum {from k=0 to 640-1} (1 / 8 - k / 16 / 640)
+parameter int CLOCK_OBSTACLES_DIVISOR_STEP = (CLOCK_OBSTACLES_DIVISOR_START - CLOCK_OBSTACLES_DIVISOR_END) / 640;
+
+parameter int CLOCK_FLASHING_DIVISOR = 50_000_000 / 2;
 
 // --------------------------------------------------------------------------------
 // Submodule Instantiation
 // --------------------------------------------------------------------------------
 
-logic clock_obstacles, clock_obstacles_divisor;
-ClockDividerN CLOCK_OBSTACLES
+logic [$clog2(CLOCK_OBSTACLES_DIVISOR_START)-1:0] clock_obstacles_divisor;
+logic clock_obstacles;
+ClockDividerN #( .WIDTH ($bits(clock_obstacles_divisor)) ) CLOCK_OBSTACLES
 (
 	.clock_in (clock_50MHz),
 	.reset (game_state != GAME_PLAY),
-	.divisor (DIVISOR_BIRDBUSH_MAX),
+	.divisor (clock_obstacles_divisor),
 	.clock_out (clock_obstacles)
 );
 
@@ -67,7 +73,7 @@ ClockDividerN CLOCK_FLASHING
 (
 	.clock_in (clock_50MHz),
 	.reset (game_state != GAME_LOSE),
-	.divisor (50 * 1000 * 1000 / 2),
+	.divisor (CLOCK_FLASHING_DIVISOR),
 	.clock_out (clock_flashing)
 );
 
@@ -175,11 +181,17 @@ always_ff @(posedge clock_obstacles or posedge reset_obstacles) begin
 		for (int i = 0; i < 16; ++i) begin
 			obstacles[i] <= OBSTACLE_NONE;
 		end
+		clock_obstacles_divisor <= CLOCK_OBSTACLES_DIVISOR_START;
 	end else begin
 		for (int i = 1; i < 16; ++i) begin
 			obstacles[i] <= obstacles[i - 1];
 		end
 		obstacles[0] <= next_obstacle;
+		if (clock_obstacles_divisor <= CLOCK_OBSTACLES_DIVISOR_END) begin
+			clock_obstacles_divisor <= CLOCK_OBSTACLES_DIVISOR_END;
+		end else begin
+			clock_obstacles_divisor <= clock_obstacles_divisor - CLOCK_OBSTACLES_DIVISOR_STEP;
+		end
 	end
 end
 
