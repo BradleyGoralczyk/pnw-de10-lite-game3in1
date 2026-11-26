@@ -30,6 +30,14 @@ logic key0, key1;
 assign key0 = ~key0_low;
 assign key1 = ~key1_low;
 
+logic power_on_reset;
+LevelToPulse POWER_ON_RESET
+(
+	.level (1),
+	.clock (clock_50MHz),
+	.pulse (power_on_reset)
+);
+
 // --------------------------------------------------------------------------------
 
 logic [5:0] [7:0] dummy_hex_leds;
@@ -48,6 +56,7 @@ SampleGame SAMPLEGAME
 	.key0 (sample_enable ? key0 : 0),
 	.key1 (sample_enable ? key1 : 0),
 	.clock_50MHz (sample_enable ? clock_50MHz : 0),
+	.reset (power_on_reset),
 	.hex_leds (sample_hex_leds),
 	.sw_leds (sample_sw_leds)
 );
@@ -60,6 +69,7 @@ BGoralcGame BGORALCGAME
 	.key0 (bgoralc_enable ? key0 : 0),
 	.key1 (bgoralc_enable ? key1 : 0),
 	.clock_50MHz (bgoralc_enable ? clock_50MHz : 0),
+	.reset (power_on_reset),
 	.hex_leds (bgoralc_hex_leds),
 	.sw_leds (bgoralc_sw_leds)
 );
@@ -72,6 +82,7 @@ JLashbrGame JLASHBRGAME
 	.key0 (jlashbr_enable ? key0 : 0),
 	.key1 (jlashbr_enable ? key1 : 0),
 	.clock_50MHz (jlashbr_enable ? clock_50MHz : 0),
+	.reset (power_on_reset),
 	.hex_leds (jlashbr_hex_leds),
 	.sw_leds (jlashbr_sw_leds)
 );
@@ -84,6 +95,7 @@ ACiastkGame ACIASTKGAME
 	.key0 (aciastk_enable ? key0 : 0),
 	.key1 (aciastk_enable ? key1 : 0),
 	.clock_50MHz (aciastk_enable ? clock_50MHz : 0),
+	.reset (power_on_reset),
 	.hex_leds (aciastk_hex_leds),
 	.sw_leds (aciastk_sw_leds)
 );
