@@ -101,7 +101,6 @@ LevelToPulse KEY1_PULSE
 assign anykey_pulse = (key0_pulse || key1_pulse);
 
 logic [7:0] hex_leds_char_L, hex_leds_char_O, hex_leds_char_S, hex_leds_char_E;
-logic [7:0] hex_leds_char_r, hex_leds_char_u, hex_leds_char_n, hex_leds_char_exclamation;
 AlphabetDisplayDriver CHAR_L
 (
 	.char (ALPHA_L),
@@ -122,25 +121,36 @@ AlphabetDisplayDriver CHAR_E
 	.char (ALPHA_E),
 	.leds (hex_leds_char_E)
 );
-AlphabetDisplayDriver CHAR_r
+
+logic [3:0] [3:0] curr_score;
+CounterBCD CURR_SCORE
 (
-	.char (ALPHA_R),
-	.leds (hex_leds_char_r)
+	.clock (clock_obstacles),
+	.reset (reset_obstacles),
+	.value (curr_score)
 );
-AlphabetDisplayDriver CHAR_u
+
+logic [3:0] [3:0] high_score;
+logic [3:0] [7:0] hex_leds_high_score;
+HexNibbleDisplayDriver HIGH_SCORE_THOUSANDS
 (
-	.char (ALPHA_u),
-	.leds (hex_leds_char_u)
+	.nibble (high_score[3]),
+	.leds (hex_leds_high_score[3])
 );
-AlphabetDisplayDriver CHAR_n
+HexNibbleDisplayDriver HIGH_SCORE_HUNDREDS
 (
-	.char (ALPHA_N),
-	.leds (hex_leds_char_n)
+	.nibble (high_score[2]),
+	.leds (hex_leds_high_score[2])
 );
-AlphabetDisplayDriver CHAR_EXCLAMATION
+HexNibbleDisplayDriver HIGH_SCORE_TENS
 (
-	.char (ALPHA_EXCLAMATION),
-	.leds (hex_leds_char_exclamation)
+	.nibble (high_score[1]),
+	.leds (hex_leds_high_score[1])
+);
+HexNibbleDisplayDriver HIGH_SCORE_ONES
+(
+	.nibble (high_score[0]),
+	.leds (hex_leds_high_score[0])
 );
 
 // --------------------------------------------------------------------------------
@@ -206,39 +216,47 @@ always_ff @(posedge clock_50MHz or posedge reset) begin
 		dino_state <= DINO_WALK;
 		game_state <= GAME_TITLE;
 		reset_obstacles <= 1'b1;
-	end else	case (game_state)
-		GAME_TITLE: begin
-			dino_state <= DINO_WALK;
-			game_state <= anykey_pulse ? GAME_PLAY : game_state;
-			reset_obstacles <= 1'b1;
-		end
-		GAME_LOSE: begin
-			dino_state <= dino_state;
-			game_state <= anykey_pulse ? GAME_TITLE : game_state;
-			reset_obstacles <= 1'b0;
-		end
-		GAME_PLAY: begin
-			if (key0 && !key1) begin
-				dino_state <= DINO_JUMP;
-			end else if (!key0 && key1) begin
-				dino_state <= DINO_DUCK;
-			end else begin
+		high_score <= 16'h0000;
+	end else begin
+		case (game_state)
+			GAME_TITLE: begin
 				dino_state <= DINO_WALK;
+				game_state <= anykey_pulse ? GAME_PLAY : game_state;
+				reset_obstacles <= 1'b1;
 			end
-			case (obstacles[15])  // Displayed on HEX5
-				OBSTACLE_BIRD: if (dino_state == DINO_JUMP || dino_state == DINO_WALK) begin
-					game_state <= GAME_LOSE;
+			GAME_LOSE: begin
+				dino_state <= dino_state;
+				game_state <= anykey_pulse ? GAME_TITLE : game_state;
+				reset_obstacles <= 1'b0;
+			end
+			GAME_PLAY: begin
+				if (key0 && !key1) begin
+					dino_state <= DINO_JUMP;
+				end else if (!key0 && key1) begin
+					dino_state <= DINO_DUCK;
+				end else begin
+					dino_state <= DINO_WALK;
 				end
-				OBSTACLE_BUSH: if (dino_state == DINO_DUCK || dino_state == DINO_WALK) begin
-					game_state <= GAME_LOSE;
-				end
-				default: begin
-					game_state <= game_state;
-				end
-			endcase
-			reset_obstacles <= 1'b0;
+				case (obstacles[15])  // Displayed on HEX5
+					OBSTACLE_BIRD: if (dino_state == DINO_JUMP || dino_state == DINO_WALK) begin
+						game_state <= GAME_LOSE;
+					end
+					OBSTACLE_BUSH: if (dino_state == DINO_DUCK || dino_state == DINO_WALK) begin
+						game_state <= GAME_LOSE;
+					end
+					default: begin
+						game_state <= game_state;
+					end
+				endcase
+				reset_obstacles <= 1'b0;
+			end
+		endcase
+		if (curr_score > high_score) begin
+			high_score <= curr_score;
+		end else begin
+			high_score <= high_score;
 		end
-	endcase
+	end
 end
 
 // --------------------------------------------------------------------------------
@@ -268,10 +286,10 @@ always_comb begin
 	end
 	case (game_state)
 		GAME_TITLE: begin
-			hex_leds[3] = hex_leds_char_r;
-			hex_leds[2] = hex_leds_char_u;
-			hex_leds[1] = hex_leds_char_n;
-			hex_leds[0] = hex_leds_char_exclamation;
+			hex_leds[3] = hex_leds_high_score[3];
+			hex_leds[2] = hex_leds_high_score[2];
+			hex_leds[1] = hex_leds_high_score[1];
+			hex_leds[0] = hex_leds_high_score[0];
 		end
 		GAME_PLAY: begin
 			// Do nothing
