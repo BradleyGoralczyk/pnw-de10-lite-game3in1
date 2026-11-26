@@ -36,7 +36,8 @@ typedef enum logic [4:0] {
 	ALPHA_h,
 	ALPHA_o,
 	ALPHA_u,
-	ALPHA_v
+	ALPHA_v,
+	ALPHA_EXCLAMATION
 } AlphabetDisplayDriverChar;
 
 endpackage: AlphabetDisplayDriver_pkg
@@ -84,6 +85,7 @@ always_comb begin
 		ALPHA_o: result <= 8'b01011100;
 		ALPHA_u: result <= 8'b00011100;
 		ALPHA_v: result <= 8'b00011100;
+		ALPHA_EXCLAMATION: result <= 8'b10000010;
 		default: result <= 8'b00000000;  // Gets optimized away and behaves wrong.  Whatever.
 	endcase
 end
