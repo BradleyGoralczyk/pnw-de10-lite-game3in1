@@ -10,6 +10,7 @@ module ACiastkGame
 	key0,  // upper button
 	key1,  // lower button
 	clock_50MHz,
+	reset,
 	
 	output logic [5:0] [7:0]
 	hex_leds,

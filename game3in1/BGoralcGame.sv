@@ -12,6 +12,7 @@ import BGoralcGameObstacleGen_pkg::*, AlphabetDisplayDriver_pkg::*;
 	key0,  // upper button (jump)
 	key1,  // lower button (duck)
 	clock_50MHz,
+	reset,
 	
 	output logic [5:0] [7:0]
 	hex_leds,
